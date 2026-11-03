@@ -1,3 +1,6 @@
+# Real family documents (NEVER COMMIT)
+private/
+
 # Secrets & Environment Variables (NEVER COMMIT THESE)
 .env
 .env.*

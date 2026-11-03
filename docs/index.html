@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>[Your Product Name] · Building with AI (Fall 2026)</title>
+  <title>Homeward · Building with AI (Fall 2026)</title>
 
   <!-- Week 1: create your PostHog account only.
        Build 2: paste your project's current PostHog web snippet here,
@@ -144,8 +144,8 @@
     <!-- HERO / PRODUCT PITCH -->
     <header>
       <span class="eyebrow">NYU Stern · Building with AI · Fall 2026</span>
-      <h1>[Your Product Name]</h1>
-      <p class="tagline">[One clear sentence: Who is this for, and what painful job does it do for them?]</p>
+      <h1>Homeward</h1>
+      <p class="tagline">Homeward is a single source of truth for families rebuilding after a wildfire. It tracks what the HOA, builder, insurer, and city each said, and flags when they contradict each other.</p>
       <div class="cta-row">
         <a class="btn" href="#live-demo" onclick="window.posthog && posthog.capture('clicked_try_product')">See the Product →</a>
         <a class="btn btn-secondary" href="#prd">Read the Living PRD</a>
@@ -171,35 +171,39 @@
       <p class="meta">Updated every week as we test with real users and learn what works.</p>
 
       <h3>1. Target User & The Job to Be Done</h3>
-      <p><strong>Who is this for?</strong> [Name a specific, reachable person or role you have direct access to.]</p>
-      <p><strong>The painful "Before" workflow:</strong> [How do they do this today, and why is it slow, manual, or broken?]</p>
-      <p><strong>The "After" workflow with this product:</strong> [What does your tool do for them in one sitting?]</p>
+      <p><strong>Who is this for?</strong> My parents, a couple in their late 60s rebuilding their Pacific Palisades home after the January 2025 fire. They're in the construction phase, and they manage the rebuild together. My mom keeps the records. My three sisters and I help remotely. They can introduce me to 2-3 neighbor families going through the same process.</p>
+      <p><strong>Job to be done:</strong> Figure out what's actually true and required across every party involved in the rebuild, so they don't act on bad information.</p>
+      <p><strong>The painful "Before" workflow:</strong> Four parties give my parents information that often conflicts: the HOA, the builder, their insurer, and the City of LA. The HOA states a requirement, the builder says they can meet it, then comes back saying they can't or it costs extra, then the HOA says it was wrong. Nobody checks the plans against the city's process. Coverage answers from insurance have to be confirmed and passed to the builder by hand. Every party has given them wrong information at some point, and each time it caused delays. My mom reconciles all of it herself, across email, two portals, and printed folders, for 10-15 hours a week. Families who are less meticulous than she is miss details and go down the wrong road.</p>
+      <p><strong>The "After" workflow with this product:</strong> My parents paste each email thread or letter, in full or just the relevant part, into Homeward. It pulls out every requirement, commitment, and coverage statement, tagged with who said it and when. It keeps a current list of what's true for each topic, such as setbacks, materials, or coverage. When a party contradicts itself or another party, Homeward flags it and shows both statements side by side with sources. The City of LA is treated as a party like the others, so its permit letters and plan-check comments are added the same way, and Homeward flags when the builder or HOA contradicts what the city said. It also lists the open questions to resolve, and who to ask.</p>
 
       <h3>2. Scope & Explicit Non-Goals</h3>
       <ul>
-        <li><strong>In Scope (Core Workflow):</strong> [The 1 main workflow this product does reliably]</li>
-        <li><strong>Out of Scope #1:</strong> [Feature you are deliberately NOT building in 6 weeks]</li>
-        <li><strong>Out of Scope #2:</strong> [Feature you are deliberately NOT building in 6 weeks]</li>
-        <li><strong>Out of Scope #3:</strong> [Feature you are deliberately NOT building in 6 weeks]</li>
+        <li><strong>In Scope (Core Workflow):</strong> Add a message → Homeward extracts claims by party, topic, and date → compares against earlier claims → flags contradictions and reversals → lists open questions.</li>
+        <li><strong>Out of Scope #1:</strong> No legal, insurance, or construction advice. Homeward flags conflicts between what parties said. It never decides who is right or what the family should do.</li>
+        <li><strong>Out of Scope #2:</strong> No sending messages. It doesn't email the HOA, builder, insurer, or city on the family's behalf.</li>
+        <li><strong>Out of Scope #3:</strong> No built-in database of city or county rules in v1. It only compares what the parties themselves said. The design is party-based, not Palisades-specific, so it can work for other wildfires and disasters later.</li>
       </ul>
 
       <h3>3. How It Works Under the Hood & Riskiest Assumption (Week 2+)</h3>
-      <p><strong>Riskiest Assumption:</strong> [What is the #1 technical or user risk that could sink this product?]</p>
-      <p><strong>Simple Architecture:</strong> [User Input] → [Your App / Server] → [AI Model / Tool] → [Output]</p>
+      <p><strong>Riskiest Assumption:</strong> The AI can reliably catch real contradictions in messy, real-world emails, including ones my mom caught by hand, without burying families in false alarms.</p>
+      <p><strong>Second risk:</strong> Families will trust Homeward enough to paste their real messages. Privacy concerns may limit what they share.</p>
+      <p><strong>Simple Architecture:</strong> [Pasted email / letter] → [Local web app] → [AI model] → [Structured claims + conflict flags]</p>
+      <p>A local web app running on my laptop. The user pastes text from an email or letter. An AI model reads it and returns structured claims (party, topic, statement, date). Claims are saved locally. On each new message, the model compares new claims against saved ones and flags conflicts. Real family documents stay in a private/ folder that git ignores and are never committed. The API key lives in .env.</p>
+      <p><strong>Privacy:</strong> Homeward runs locally with no account, and data stays on the family’s computer. Users can paste whole email threads. Planned: on-device cleanup that strips signatures and repeated replies, and redaction that replaces names and policy numbers with role labels like [HOA rep], with a summary preview before anything is sent to a zero-retention AI provider.</p>
 
       <h3>4. Unit Economics & Analytics Snapshot (Updated Weekly)</h3>
       <div class="grid-2">
         <div class="stat-box">
           <div class="stat-label">Cumulative Build Spend</div>
-          <div class="stat-value">[Record actual spend]</div>
+          <div class="stat-value">To be measured in the build log.</div>
         </div>
         <div class="stat-box">
           <div class="stat-label">Est. Cost Per User Run</div>
-          <div class="stat-value">[Not yet estimated]</div>
+          <div class="stat-value">Each message is a small number of AI calls, so likely cents per message.</div>
         </div>
         <div class="stat-box">
           <div class="stat-label">User Evidence (Analytics from Build 2)</div>
-          <div class="stat-value">[Not yet measured]</div>
+          <div class="stat-value">PostHog will be added in Build 2 to track messages added, conflicts flagged, and conflicts the user marks as real or a false alarm.</div>
         </div>
         <div class="stat-box">
           <div class="stat-label">Sponsor Call (Week 6)</div>
