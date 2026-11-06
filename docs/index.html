@@ -157,11 +157,11 @@
     <section id="live-demo">
       <h2>Product Showcase (Prototype / Live App / 2-Min Video)</h2>
       <p>
-        <strong>Current Status:</strong> [Build 1: local prototype / Builds 2–4: local app / Build 5: cloud app]<br />
-        <strong>Demo:</strong> [Add a screenshot or GIF now; add the live cloud app URL in Build 5.]
+        <strong>Current Status:</strong> Build 1: local prototype
       </p>
+      <img src="prototype-build1.png" alt="Homeward prototype flagging a contradiction: the builder said the design qualifies as like-for-like, while the city's plan check says it does not. Both statements are shown side by side with dates, followed by open questions and who to ask." style="width: 100%; border: 1px solid var(--border); border-radius: 8px;" />
       <p class="meta">
-        Ask your coding agent to embed a screenshot or GIF of your local prototype for Build 1. Keep this evidence current, then add your cloud app link and two-minute video in Build 5.
+        Local prototype running on a synthetic sample thread. Homeward shows the builder’s and the city’s statements side by side, then lists open questions and who to ask.
       </p>
     </section>
 
@@ -220,10 +220,10 @@
       <div class="log-entry">
         <h3>Build 1 · Intent.md & Throwaway Prototype (Due Nov 9)</h3>
         <ul>
-          <li><strong>What shipped:</strong> PRD v1 for Homeward, live on this page. Set up Git, GitHub, GitHub Pages, Claude Code, and a PostHog account. Added a private/ folder to .gitignore so real family documents can never be committed. Prototype in progress.</li>
+          <li><strong>What shipped:</strong> PRD v1 for Homeward, live on this page. Set up Git, GitHub, GitHub Pages, Claude Code, and a PostHog account. Added a private/ folder to .gitignore so real family documents can never be committed. Built a working local prototype: paste an email thread, and it extracts each party's claims, flags contradictions side by side, and lists open questions and who to ask (screenshot above). Tested on six sample threads, it caught 5 of 5 planted conflicts with 0 false alarms, for $0.20 in AI costs. The samples are synthetic and written with known answers, so real, messy emails are still the open test.</li>
           <li><strong>Things learned with AI:</strong> The terminal and the agent both take you literally. In Terminus, <code>cd ..crypt</code> failed because of one missing slash, and <code>rm</code> deletes with no undo. Installing Claude Code through npm failed with a permissions error. Instead of forcing it with sudo, I used the native installer and fixed my PATH. Having Claude propose a plan and wait for approval before editing caught mistakes before they happened, like flagging that "builder" and "developer" were used inconsistently, and that private/ wasn't actually ignored yet. I also learned that moving a repo into an org can cost you admin rights, which blocked GitHub Pages until the instructor fixed it.</li>
           <li><strong>What broke / changed in PRD:</strong> I explored several ideas (new parents, egg freezing, recruiting tools) before landing on my family's wildfire rebuild, the problem I have real access to. I dropped a receipts and insurance-recovery angle because it didn't match where my parents are in the process. I narrowed the core job to one thing: finding the truth when the HOA, builder, insurer, and city contradict each other. I widened input from line-by-line pasting to whole email threads, since pasting line by line was too manual. I added a privacy plan and a second risk (will families trust it with real messages?), and removed details that could identify my family.</li>
-          <li><strong>Cost & time this week:</strong> $0.00 so far · 3 hours so far</li>
+          <li><strong>Cost & time this week:</strong> $0.26 · 7 hours</li>
         </ul>
       </div>
 
