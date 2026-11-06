@@ -1,6 +1,9 @@
 # Real family documents (NEVER COMMIT)
 private/
 
+# Homeward saved claims (can contain real family data; NEVER COMMIT)
+data/
+
 # Secrets & Environment Variables (NEVER COMMIT THESE)
 .env
 .env.*

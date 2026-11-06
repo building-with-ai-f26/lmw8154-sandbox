@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Homeward</title>
+  <style>
+    :root {
+      --bg: #fafafa; --card: #fff; --text: #111827; --muted: #4b5563; --border: #e5e7eb;
+      --accent: #1d63dc; --new: #fffbeb; --flag: #b45309; --flag-bg: #fef3c7; --error: #b91c1c;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); line-height: 1.5; }
+    .container { max-width: 1000px; margin: 0 auto; padding: 32px 20px 64px; }
+    h1 { margin: 0 0 4px; font-size: 28px; }
+    .sub { color: var(--muted); margin: 0 0 20px; }
+    section { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 20px 22px; margin-bottom: 20px; }
+    h2 { font-size: 18px; margin: 0 0 12px; }
+    textarea { width: 100%; min-height: 180px; padding: 12px; font: 14px/1.4 ui-monospace, Menlo, monospace; border: 1px solid var(--border); border-radius: 8px; resize: vertical; }
+    .row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-top: 12px; }
+    button { padding: 9px 16px; border-radius: 8px; border: 1px solid var(--accent); background: var(--accent); color: #fff; font-weight: 600; font-size: 14px; cursor: pointer; }
+    button.secondary { background: #fff; color: var(--text); border-color: var(--border); }
+    button:disabled { opacity: 0.5; cursor: wait; }
+    #status { color: var(--muted); font-size: 14px; }
+    #status.error { color: var(--error); }
+    .meta { color: var(--muted); font-size: 13px; }
+    .empty { color: var(--muted); font-style: italic; }
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    th, td { text-align: left; padding: 8px; border-bottom: 1px solid var(--border); vertical-align: top; }
+    th { font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); }
+    tr.new td { background: var(--new); }
+    td.nowrap { white-space: nowrap; }
+    .conflict { border: 1px solid var(--border); border-left: 4px solid var(--flag); border-radius: 8px; padding: 14px 16px; margin-bottom: 14px; }
+    .conflict.new { background: var(--new); }
+    .badge { display: inline-block; font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 999px; background: var(--flag-bg); color: var(--flag); margin-right: 8px; text-transform: uppercase; }
+    .sides { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; margin-top: 10px; }
+    .side { border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; background: #fff; }
+    .side .who { font-weight: 600; }
+    .quote { color: var(--muted); font-size: 13px; margin-top: 6px; }
+    ul.questions { margin: 0; padding-left: 20px; }
+    ul.questions li { margin-bottom: 8px; }
+    .ask { font-weight: 600; }
+    footer { color: var(--muted); font-size: 13px; text-align: center; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Homeward</h1>
+    <p class="sub">Paste one email thread or letter. Homeward pulls out what each party said and flags when they contradict each other.</p>
+
+    <section>
+      <h2>Add a message</h2>
+      <textarea id="input" placeholder="Paste an email thread or letter from the HOA, builder, insurer, or city…"></textarea>
+      <div class="row">
+        <button id="analyze">Analyze</button>
+        <button id="clear" class="secondary">Clear all</button>
+        <span id="status"></span>
+      </div>
+      <p class="meta" id="totals"></p>
+    </section>
+
+    <section>
+      <h2>Claims</h2>
+      <div id="claims"></div>
+    </section>
+
+    <section>
+      <h2>Flagged conflicts</h2>
+      <div id="conflicts"></div>
+    </section>
+
+    <section>
+      <h2>Open questions</h2>
+      <div id="questions"></div>
+    </section>
+
+    <footer>Homeward flags conflicts between what parties said. It doesn’t decide who is right or what to do.</footer>
+  </div>
+
+  <script>
+    // Everything from the AI is shown with textContent, never as HTML,
+    // so text inside a pasted email can't run code on this page.
+    const $ = (sel) => document.querySelector(sel);
+    function el(tag, text, className) {
+      const node = document.createElement(tag);
+      if (text != null) node.textContent = text;
+      if (className) node.className = className;
+      return node;
+    }
+    const money = (n) => (n == null ? "cost not reported" : "$" + n.toFixed(4));
+
+    async function api(path, body) {
+      const options = body === undefined ? {} : {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      };
+      const res = await fetch(path, options);
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || "Something went wrong.");
+      return data;
+    }
+
+    function setStatus(text, isError = false) {
+      $("#status").textContent = text;
+      $("#status").className = isError ? "error" : "";
+    }
+
+    function render(state, run) {
+      const newClaims = new Set(run?.newClaimIds || []);
+      const newConflicts = new Set(run?.newConflictIds || []);
+      $("#totals").textContent =
+        `${state.threads} message(s) analyzed · ${state.claims.length} claims · ${state.conflicts.length} conflicts · ` +
+        `total AI cost ${money(state.totalCost)} · model ${state.model}`;
+
+      // (1) Claims table, oldest first
+      const claimsBox = $("#claims");
+      claimsBox.replaceChildren();
+      if (!state.claims.length) {
+        claimsBox.append(el("p", "No claims yet.", "empty"));
+      } else {
+        const table = el("table");
+        const head = el("tr");
+        ["Date", "Party", "Topic", "Statement", "Msg #"].forEach((h) => head.append(el("th", h)));
+        table.append(head);
+        [...state.claims].sort((a, b) => a.date.localeCompare(b.date)).forEach((c) => {
+          const tr = el("tr", null, newClaims.has(c.id) ? "new" : "");
+          tr.append(el("td", c.date, "nowrap"), el("td", c.party), el("td", c.topic), el("td", c.statement), el("td", String(c.thread)));
+          table.append(tr);
+        });
+        const wrap = el("div", null, "table-wrap");
+        wrap.append(table);
+        claimsBox.append(wrap);
+      }
+
+      // (2) Conflicts, newest first, both statements side by side
+      const conflictsBox = $("#conflicts");
+      conflictsBox.replaceChildren();
+      if (!state.conflicts.length) {
+        conflictsBox.append(el("p", "No conflicts flagged.", "empty"));
+      }
+      [...state.conflicts].reverse().forEach((k) => {
+        const card = el("div", null, "conflict" + (newConflicts.has(k.id) ? " new" : ""));
+        const title = el("div");
+        title.append(el("span", k.kind, "badge"), el("strong", k.topic));
+        card.append(title, el("p", k.summary));
+        const sides = el("div", null, "sides");
+        [k.earlier, k.later].forEach((c) => {
+          const side = el("div", null, "side");
+          side.append(el("div", `${c.party} · ${c.date}`, "who"), el("div", c.statement), el("div", `“${c.quote}”`, "quote"));
+          sides.append(side);
+        });
+        card.append(sides);
+        conflictsBox.append(card);
+      });
+
+      // (3) Open questions, with who to ask
+      const questionsBox = $("#questions");
+      questionsBox.replaceChildren();
+      if (!state.questions.length) {
+        questionsBox.append(el("p", "No open questions.", "empty"));
+      } else {
+        const list = el("ul", null, "questions");
+        state.questions.forEach((q) => {
+          const li = el("li");
+          li.append(el("span", `Ask the ${q.ask}: `, "ask"), document.createTextNode(q.question), el("span", ` (${q.topic})`, "meta"));
+          list.append(li);
+        });
+        questionsBox.append(list);
+      }
+    }
+
+    $("#analyze").addEventListener("click", async () => {
+      const text = $("#input").value;
+      if (!text.trim()) return setStatus("Paste an email thread or letter first.", true);
+      $("#analyze").disabled = $("#clear").disabled = true;
+      setStatus("Analyzing… this can take up to a minute.");
+      try {
+        const { run, state } = await api("/api/analyze", { text });
+        render(state, run);
+        $("#input").value = "";
+        setStatus(`Message ${run.thread}: ${run.newClaimIds.length} new claims, ${run.newConflictIds.length} new conflicts · ${money(run.cost)}. New items are highlighted.`);
+      } catch (err) {
+        setStatus(err.message, true);
+      } finally {
+        $("#analyze").disabled = $("#clear").disabled = false;
+      }
+    });
+
+    $("#clear").addEventListener("click", async () => {
+      if (!confirm("Delete all saved claims, conflicts, and questions?")) return;
+      try {
+        const { state } = await api("/api/clear", {});
+        render(state);
+        setStatus("Cleared. Starting fresh.");
+      } catch (err) {
+        setStatus(err.message, true);
+      }
+    });
+
+    api("/api/state").then((state) => render(state)).catch((err) => setStatus(err.message, true));
+  </script>
+</body>
+</html>

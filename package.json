@@ -1,0 +1,13 @@
+{
+  "name": "homeward",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Local prototype: tracks what the HOA, builder, insurer, and city said, and flags contradictions.",
+  "engines": {
+    "node": ">=21"
+  },
+  "scripts": {
+    "start": "node server.js",
+    "test:samples": "node tests/run-samples.js"
+  }
+}
